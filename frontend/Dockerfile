@@ -14,13 +14,11 @@ RUN npm run build
 
 # --- stage 2 ---
 
-FROM node:22-alpine AS production
+FROM nginx:alpine AS production
 
-WORKDIR /app
+COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY --from=build /app/dist .
+EXPOSE 80
 
-EXPOSE 5432
-
-CMD [ "npm", "run", "dev" ]
+CMD [ "nginx", "-g", "daemon off;" ]
 
