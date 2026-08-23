@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jerney-backend-deployment
+  labels:
+    app: jerney-backend
+spec:
+  replicas: {{ .Values.backend.replicaCount}}
+  selector:
+    matchLabels:
+      app: jerney-backend
+  template:
+    metadata:
+      labels:
+        app: jerney-backend
+    spec:
+      containers:
+        - name: jerney-backend
+          image: "{{ .Values.backend.image.repository}}:{{ .Values.backend.image.tag}}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy}}
+          ports:
+            - containerPort: {{ .Values.backend.service.port}}
+          env:
+            {{- toYaml .Values.backend.env | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}   
+
+            

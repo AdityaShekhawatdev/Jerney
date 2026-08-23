@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jerney-db-deployment
+  labels:
+    app: jerney-db
+spec:
+  replicas: {{ .Values.db.replicaCount }}
+  selector:
+    matchLabels:
+      app: jerney-db
+  template:
+    metadata:
+      labels:
+        app: jerney-db
+    spec:
+      containers:
+        - name: jerney-db
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          imagePullPolicy: {{ .Values.db.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.db.service.port }}
+          env:
+            {{- toYaml .Values.db.env | nindent 12 }}
+          resources:
+            {{- toYaml .Values.db.resources | nindent 12 }}
