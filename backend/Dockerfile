@@ -23,6 +23,8 @@ COPY src/ ./src
 
 COPY package*.json ./
 
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 RUN chown -R appuser:appgroup /app
