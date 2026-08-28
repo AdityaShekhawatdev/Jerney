@@ -4,8 +4,6 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-RUN npm install -g npm@latest
-
 COPY package*.json ./
 
 RUN npm ci && npm cache clean --force
@@ -16,6 +14,8 @@ RUN npm ci && npm cache clean --force
 FROM node:22-alpine AS prod
 
 WORKDIR /app
+
+RUN apk update && apk upgrade
 
 COPY --from=build /app/node_modules ./node_modules
 
