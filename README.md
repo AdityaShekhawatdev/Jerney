@@ -126,5 +126,6 @@ All three services run as separate containers/pods on an isolated network. The b
 - **Secrets split into a separate values file:** Keeping real credentials out of `values.yaml` and `templates/secret.yaml` (which are committed to Git) avoids repeating the mistake of committing plaintext credentials — the same principle applied to `.env` in the Docker Compose setup.
 
 ---
+starting terraform 
 
 *This project is part of my self-driven DevOps learning journey. Original application by [@iam-veeramalla](https://github.com/iam-veeramalla).*
