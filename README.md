@@ -138,6 +138,4 @@ All three services run as separate containers/pods on an isolated network. The b
 
 ---
 
-
-
 *This project is part of my self-driven DevOps learning journey. Original application by [@iam-veeramalla](https://github.com/iam-veeramalla).*
