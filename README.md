@@ -10,6 +10,7 @@
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Security Decisions & Trade-offs](#security-decisions--trade-offs)
+- [Lessons Learned](#lessons-learned)
 
 ## Architecture
 
@@ -66,6 +67,16 @@ All three services run as separate containers/pods on an isolated network. The b
 - Caught and fixed a real vulnerability this way: `node-tar` (bundled with npm inside the base image) had a HIGH severity DoS CVE. Since the app never needs `npm`/`npx` at runtime (it runs via `node src/index.js` directly), the fix was to remove them from the production Docker stage entirely — resolving the CVE and shrinking the attack surface, rather than raising the severity threshold or ignoring the finding
 - Docker Hub credentials stored as GitHub Actions repository secrets, never hardcoded in the workflow file
 
+### Infrastructure (Terraform, AWS)
+- VPC and EKS cluster provisioned with Terraform, using the official `terraform-aws-modules/vpc` and `terraform-aws-modules/eks` modules rather than hand-rolled resources
+- 2 Availability Zones for both public and private subnets — the minimum EKS requires, and enough to demonstrate multi-AZ networking without paying for capacity a single-node cluster doesn't use
+- Worker nodes run in private subnets only; a NAT Gateway gives them outbound internet access without exposing them to inbound traffic
+- EKS cluster API endpoint restricted to a single IP via `cluster_endpoint_public_access_cidrs` (a `/32` CIDR) instead of leaving it open to the entire internet
+- Kubernetes Secrets encrypted at rest via `cluster_encryption_config` (AWS KMS), on top of the application-level Secret separation already used for local/minikube
+- A dedicated IAM user (not the AWS root account) used for all Terraform operations, with permissions scoped to the AWS services this project actually touches (EKS, EC2, VPC, IAM, KMS, CloudWatch Logs) rather than `AdministratorAccess`
+- Deployed the same Helm chart used for local Kubernetes onto the real EKS cluster with no changes — validating that the chart is portable across environments
+- Infrastructure was provisioned, verified, and then torn down (`terraform destroy`) after testing to avoid ongoing cloud costs — this project runs on real AWS only long enough to prove it works, not as a persistent environment
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -76,6 +87,7 @@ All three services run as separate containers/pods on an isolated network. The b
 | Containerization | Docker, Docker Compose |
 | Orchestration | Kubernetes (minikube), Helm |
 | CI/CD | GitHub Actions, Trivy |
+| Infrastructure as Code | Terraform, AWS (VPC, EKS, KMS, IAM) |
 
 ## Getting Started
 
