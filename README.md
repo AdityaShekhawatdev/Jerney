@@ -58,6 +58,14 @@ All three services run as separate containers/pods on an isolated network. The b
 - Reverse proxy pattern — the backend is never directly exposed to the internet; all API traffic goes through Nginx's `/api/` location block, which also forwards real client IP and protocol headers
 - Nginx runs on unprivileged port 8080 internally since non-root containers can't bind to ports below 1024
 
+### CI/CD Pipeline (GitHub Actions)
+- Matrix strategy builds backend and frontend in parallel (`strategy.matrix`), cutting pipeline time roughly in half compared to sequential builds
+- Images tagged with the Git commit SHA (`${{ github.sha }}`) instead of `latest`, for traceability and safe rollbacks
+- Pipeline enforces build → scan → push order: image is built locally in the runner first, scanned, and only pushed to Docker Hub if the scan passes
+- Trivy scans every image for OS and language-level vulnerabilities, configured to fail the pipeline (`exit-code: 1`) on CRITICAL or HIGH severity findings
+- Caught and fixed a real vulnerability this way: `node-tar` (bundled with npm inside the base image) had a HIGH severity DoS CVE. Since the app never needs `npm`/`npx` at runtime (it runs via `node src/index.js` directly), the fix was to remove them from the production Docker stage entirely — resolving the CVE and shrinking the attack surface, rather than raising the severity threshold or ignoring the finding
+- Docker Hub credentials stored as GitHub Actions repository secrets, never hardcoded in the workflow file
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -67,6 +75,7 @@ All three services run as separate containers/pods on an isolated network. The b
 | Database | PostgreSQL |
 | Containerization | Docker, Docker Compose |
 | Orchestration | Kubernetes (minikube), Helm |
+| CI/CD | GitHub Actions, Trivy |
 
 ## Getting Started
 
@@ -123,8 +132,12 @@ All three services run as separate containers/pods on an isolated network. The b
 
 - **NodePort instead of Ingress for local access:** This project shares a minikube cluster with another local project, and both wanted to bind the same wildcard host/path via Ingress, which the admission webhook rejected. Rather than force a host-based workaround, NodePort was used for local access; a real deployment would use Ingress with a proper, unique domain.
 
+- **Removed npm from the production image instead of just updating it:** A CVE was found in `node-tar`, bundled with npm. Updating npm only in the Docker build stage didn't fix it, since the final production stage is a separate, independent stage that starts fresh from the base image. Since the app runs via `node src/index.js` directly and never needs `npm`/`npx` at runtime, removing them entirely fixed the CVE and reduced the attack surface for future npm-related vulnerabilities too — a more durable fix than chasing each new patch.
+
 - **Secrets split into a separate values file:** Keeping real credentials out of `values.yaml` and `templates/secret.yaml` (which are committed to Git) avoids repeating the mistake of committing plaintext credentials — the same principle applied to `.env` in the Docker Compose setup.
 
 ---
+
+
 
 *This project is part of my self-driven DevOps learning journey. Original application by [@iam-veeramalla](https://github.com/iam-veeramalla).*
