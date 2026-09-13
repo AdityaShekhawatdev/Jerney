@@ -43,7 +43,7 @@ module "eks" {
 
   cluster_endpoint_public_access       = true
   enable_cluster_creator_admin_permissions = true
-  cluster_endpoint_public_access_cidrs = ["106.219.185.35/32"]
+  cluster_endpoint_public_access_cidrs = ["223.188.177.180/32"]
 
   cluster_encryption_config = {
     resources = ["secrets"]

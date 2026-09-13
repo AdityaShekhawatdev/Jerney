@@ -7,5 +7,5 @@ spec:
   selector:
     app: jerney-frontend
   ports:
-    - port: {{ .Values.frontend.service.port}}
-      targetPort: {{ .Values.frontend.service.port}}     
+    - port: {{ .Values.frontend.service.ports.port}}
+      targetPort: {{ .Values.frontend.service.ports.targetPort}}     
